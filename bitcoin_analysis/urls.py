@@ -4,6 +4,6 @@ from . import views
 
 
 urlpatterns = [
-    path('btc-indicators/', views.bitcoin_indicators, name='btc'),
+    path('btc-indicators/', views.BitcoinTechnicalAnalysisAPI.as_view(), name='btc'),
 
 ]

@@ -4,15 +4,22 @@ import pandas as pd
 
 def fetch_bitcoin_data():
 
-    url = "https://api.binance.com/api/v3/klines"
-    params ={
-        "symbol": "BTCUSDT",
-        "interval": "1d",
-        "limit": 200
-    }
+    # url = "https://api.binance.com/api/v3/klines"
+    url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
+    # params ={
+    #     "symbol": "BTCUSDT",
+    #     "interval": "1d",
+    #     "limit": 200
+    # }
 
+    params = {
+            'vs_currency': 'usd',
+            'days': '365',  # 1 year of data for better SMA200 calculation
+            'interval': 'daily'
+    }
     response = requests.get(url,params=params)
     data = response.json()
+    print('#####data:#######',data)
 
     df = pd.DataFrame(data, columns=["timestamp", "open", "high", "low", "close", "volume",
                                       "close_time", "quote_asset_volume", "trades",
