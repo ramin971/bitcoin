@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import timedelta
 from . import tc
+from market_data.service import MarketDataService
 
 class BitcoinTechnicalAnalysisAPI(APIView):
     """API کامل تحلیل تکنیکال بیت‌کوین با 15 اندیکاتور مهم"""
@@ -271,27 +272,35 @@ class AdvancedTechnicalAnalysis(APIView):
     """
     اندپوینت تحلیل تکنیکال پیشرفته با ترکیب‌های هوشمند اندیکاتورها
     """
+    """اندپوینت تحلیل تکنیکال با تزریق وابستگی"""
     
-    CACHE_KEY = 'advanced_ta_analysis'
-    CACHE_TIMEOUT = 3600  # 1 ساعت
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.market_data_service = MarketDataService()
+        self.technical_calculator = tc.TechnicalCalculator()
+
+    # CACHE_KEY = 'advanced_ta_analysis'
+    # CACHE_TIMEOUT = 3600  # 1 ساعت
 
     def get(self, request):
         try:
-            cached_data = cache.get(self.CACHE_KEY)
-            if cached_data:
-                return Response(cached_data)
+            # cached_data = cache.get(self.CACHE_KEY)
+            # if cached_data:
+                # return Response(cached_data)
             
-            df = tc.fetch_market_data()
-
+            # df = tc.fetch_market_data()
+            symbol=request.query_params.get('symbol')
+            df = self.market_data_service.get_historical_data(symbol)
             # استفاده از کلاس محاسباتی
-            calculator = tc.TechnicalCalculator(df)
-            calculated_df = calculator.calculate_all()
+            # calculator = tc.TechnicalCalculator(df)
+            calculated_df = self.technical_calculator.calculate_all(df)
             analysis = {
-                "individual_indicators": self.get_high_confidence_individual_indicators(calculated_df),
-                "combined_strategies": self.get_high_confirmation_combinations(calculated_df)
+                "price": self._get_current_price(calculated_df),
+                "individual_indicators": self._get_high_confidence_individual_indicators(calculated_df),
+                "combined_strategies": self._get_high_confirmation_combinations(calculated_df)
             }
             
-            cache.set(self.CACHE_KEY, analysis, self.CACHE_TIMEOUT)
+            # cache.set(self.CACHE_KEY, analysis, self.CACHE_TIMEOUT)
             return Response(analysis)
             
         except Exception as e:
@@ -300,8 +309,18 @@ class AdvancedTechnicalAnalysis(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    def _get_current_price(self,df):
+        last_row = df.iloc[-1]        
+                
+        return {"current_price":
+                {
+                    'value': round(last_row['price'], 2),
+                    # 'position': self.get_price_position(last_row)
+                }  
+            }        
+                
 
-    def get_high_confidence_individual_indicators(self, df):
+    def _get_high_confidence_individual_indicators(self, df):
         """اندیکاتورهای مستقل با درصد تأییدیه بالا"""
         return {
             "golden_cross": {
@@ -327,7 +346,7 @@ class AdvancedTechnicalAnalysis(APIView):
             }
         }
 
-    def get_high_confirmation_combinations(self, df):
+    def _get_high_confirmation_combinations(self, df):
         """ترکیب‌های تأییدکننده چندلایه"""
         return {
             "trend_confirmation": {
@@ -407,3 +426,4 @@ class AdvancedTechnicalAnalysis(APIView):
             ]
         
         return "strong_bullish" if all(conditions) else "bullish" if sum(conditions) >= 2 else "neutral"
+    

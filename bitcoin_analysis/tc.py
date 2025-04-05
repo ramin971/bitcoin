@@ -53,19 +53,18 @@ def fetch_market_data():
 
 class TechnicalCalculator:
     """کلاس پایه برای محاسبات اندیکاتورها"""
-    
-    def __init__(self, df):
-        self.df = df.copy()
+
         
-    def calculate_all(self):
+    def calculate_all(self,df):
         """محاسبه تمام اندیکاتورها"""
-        self.calculate_trend_indicators()
-        self.calculate_momentum_indicators()
-        self.calculate_volume_indicators()
-        self.calculate_volatility_indicators()
+        self.df = df.copy()
+        self._calculate_trend_indicators()
+        self._calculate_momentum_indicators()
+        self._calculate_volume_indicators()
+        self._calculate_volatility_indicators()
         return self.df
     
-    def calculate_trend_indicators(self):
+    def _calculate_trend_indicators(self):
         # محاسبه میانگین‌های متحرک
         self.df['sma20'] = SMAIndicator(close=self.df['price'], window=20).sma_indicator()
         self.df['sma50'] = SMAIndicator(close=self.df['price'], window=50).sma_indicator()
@@ -106,7 +105,7 @@ class TechnicalCalculator:
         
         return self.df
     
-    def calculate_momentum_indicators(self):
+    def _calculate_momentum_indicators(self):
         # محاسبه RSI
         self.df['rsi14'] = RSIIndicator(close=self.df['price'], window=14).rsi()
         
@@ -132,7 +131,7 @@ class TechnicalCalculator:
         
         return self.df
     
-    def calculate_volume_indicators(self):
+    def _calculate_volume_indicators(self):
         if 'volume' in self.df.columns:
             # محاسبه MFI
             self.df['mfi14'] = MFIIndicator(
@@ -153,7 +152,7 @@ class TechnicalCalculator:
         
         return self.df
     
-    def calculate_volatility_indicators(self):
+    def _calculate_volatility_indicators(self):
         # محاسبه بولینگر باندز
         bb = BollingerBands(close=self.df['price'], window=20, window_dev=2)
         self.df['bb_upper'] = bb.bollinger_hband()
