@@ -1,153 +1,10 @@
-# from .indicators import calculate_indicators
-# from rest_framework import status
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-
-# @api_view(['GET'])
-# def bitcoin_indicators(request):
-#     data = calculate_indicators()
-#     return Response(data)
-
-# import requests
-# import pandas as pd
-# # import numpy as np
-# from ta.trend import (MACD, EMAIndicator, SMAIndicator, 
-#                      BollingerBands, IchimokuIndicator, 
-#                      ADXIndicator, ATR, PSARIndicator)
-# from ta.momentum import (RSIIndicator, StochasticOscillator, 
-#                         WilliamsRIndicator, MFIIndicator, 
-#                         ROCIndicator, TSIIndicator)
-# from ta.volume import AccDistIndexIndicator, ChaikinMoneyFlowIndicator
-# from ta.others import CCIIndicator
-# from django.http import JsonResponse
-# from django.views import View
-# from django.core.cache import cache
-
-
-
-
-# class BitcoinTechnicalAnalysis(View):
-#     def get(self, request):
-#         # چک کردن کش
-#         cached_data = cache.get('bitcoin_technical_analysis')
-#         if cached_data:
-#             return JsonResponse(cached_data)
-
-#         # دریافت داده از CoinGecko
-#         try:
-#             df = self.fetch_bitcoin_data()
-#             analysis = self.calculate_technical_analysis(df)
-            
-#             # ذخیره در کش به مدت 1 ساعت
-#             cache.set('bitcoin_technical_analysis', analysis, 3600)
-            
-#             return JsonResponse(analysis)
-            
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-
-#     def fetch_bitcoin_data(self):
-#         """دریافت داده‌های تاریخی بیت‌کوین از CoinGecko"""
-#         url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
-#         params = {
-#             'vs_currency': 'usd',
-#             'days': '365',
-#             'interval': 'daily'
-#         }
-        
-#         response = requests.get(url, params=params, timeout=10)
-#         response.raise_for_status()
-#         data = response.json()
-        
-#         # تبدیل به DataFrame
-#         df = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
-#         df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
-#         df.set_index('date', inplace=True)
-#         df = df[~df.index.duplicated(keep='first')]
-#         df.sort_index(inplace=True)
-        
-#         return df
-
-#     def calculate_technical_analysis(self, df):
-#         """محاسبه تحلیل تکنیکال"""
-#         # محاسبه اندیکاتورها
-#         df['sma50'] = SMAIndicator(close=df['price'], window=50).sma_indicator()
-#         df['sma200'] = SMAIndicator(close=df['price'], window=200).sma_indicator()
-#         df['ema12'] = EMAIndicator(close=df['price'], window=12).ema_indicator()
-#         df['ema26'] = EMAIndicator(close=df['price'], window=26).ema_indicator()
-        
-#         # محاسبه MACD
-#         macd = MACD(close=df['price'], window_slow=26, window_fast=12, window_sign=9)
-#         df['macd'] = macd.macd()
-#         df['macd_signal'] = macd.macd_signal()
-        
-#         # محاسبه RSI
-#         df['rsi'] = RSIIndicator(close=df['price'], window=14).rsi()
-        
-#         # تعیین وضعیت هر اندیکاتور
-#         analysis = {
-#             'price': {
-#                 'value': float(df['price'].iloc[-1]),
-#                 'trend': 'up' if df['price'].iloc[-1] > df['price'].iloc[-2] else 'down'
-#             },
-#             'sma50': {
-#                 'value': float(df['sma50'].iloc[-1]),
-#                 'trend': 'up' if df['sma50'].iloc[-1] > df['sma50'].iloc[-2] else 'down',
-#                 'position': 'above_price' if df['sma50'].iloc[-1] > df['price'].iloc[-1] else 'below_price'
-#             },
-#             'sma200': {
-#                 'value': float(df['sma200'].iloc[-1]),
-#                 'trend': 'up' if df['sma200'].iloc[-1] > df['sma200'].iloc[-2] else 'down',
-#                 'position': 'above_price' if df['sma200'].iloc[-1] > df['price'].iloc[-1] else 'below_price'
-#             },
-#             'golden_cross': {
-#                 'value': 'active' if df['sma50'].iloc[-1] > df['sma200'].iloc[-1] and 
-#                                  df['sma50'].iloc[-2] <= df['sma200'].iloc[-2] else 'inactive',
-#                 'status': 'bullish' if df['sma50'].iloc[-1] > df['sma200'].iloc[-1] else 'bearish'
-#             },
-#             'macd': {
-#                 'value': float(df['macd'].iloc[-1]),
-#                 'signal': float(df['macd_signal'].iloc[-1]),
-#                 'trend': 'bullish' if df['macd'].iloc[-1] > df['macd_signal'].iloc[-1] else 'bearish',
-#                 'momentum': 'increasing' if df['macd'].iloc[-1] > df['macd'].iloc[-2] else 'decreasing'
-#             },
-#             'rsi': {
-#                 'value': float(df['rsi'].iloc[-1]),
-#                 'trend': 'up' if df['rsi'].iloc[-1] > df['rsi'].iloc[-2] else 'down',
-#                 'status': 'overbought' if df['rsi'].iloc[-1] > 70 else 
-#                          'oversold' if df['rsi'].iloc[-1] < 30 else 'neutral'
-#             },
-#             'ema_cross': {
-#                 'value': 'active' if df['ema12'].iloc[-1] > df['ema26'].iloc[-1] and 
-#                                  df['ema12'].iloc[-2] <= df['ema26'].iloc[-2] else 'inactive',
-#                 'status': 'bullish' if df['ema12'].iloc[-1] > df['ema26'].iloc[-1] else 'bearish'
-#             },
-#             'last_updated': pd.Timestamp.now().isoformat()
-#         }
-        
-#         return analysis
-
-import requests
 import pandas as pd
-from ta.trend import (
-    MACD, EMAIndicator, SMAIndicator, 
-    IchimokuIndicator,CCIIndicator,
-    ADXIndicator, PSARIndicator
-)
-from ta.momentum import (
-    RSIIndicator, StochasticOscillator,
-    WilliamsRIndicator
-)
-
-from ta.volatility import BollingerBands , AverageTrueRange as ATR
-from ta.volume import AccDistIndexIndicator, MFIIndicator
-# from django.http import JsonResponse
-# from django.views import View
 from django.core.cache import cache
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import timedelta
+from . import tc
 
 class BitcoinTechnicalAnalysisAPI(APIView):
     """API کامل تحلیل تکنیکال بیت‌کوین با 15 اندیکاتور مهم"""
@@ -163,7 +20,7 @@ class BitcoinTechnicalAnalysisAPI(APIView):
                 return Response(cached_data)
             
             # دریافت و پردازش داده‌ها
-            df = self.fetch_market_data()
+            df = tc.fetch_market_data()
             analysis = self.complete_technical_analysis(df)
             
             # ذخیره در کش
@@ -173,137 +30,17 @@ class BitcoinTechnicalAnalysisAPI(APIView):
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            # return JsonResponse(
-            #     {'error': f'خطا در پردازش داده‌ها: {str(e)}'},
-            #     status=500
-            # )
 
-    def fetch_market_data(self):
-        """دریافت داده‌های بازار از CoinGecko API"""
-        url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
-        params = {
-            'vs_currency': 'usd',
-            'days': 365,
-            'interval': 'daily'
-        }
-        
-        response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-        
-        # ایجاد DataFrame
-        df = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
-        df['date'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df.set_index('date', inplace=True)
-        
-        # اضافه کردن حجم معاملات اگر موجود باشد
-        if 'total_volumes' in data:
-            volumes = pd.DataFrame(data['total_volumes'], 
-                                 columns=['timestamp', 'volume'])
-            volumes['date'] = pd.to_datetime(volumes['timestamp'], unit='ms')
-            volumes.set_index('date', inplace=True)
-            df['volume'] = volumes['volume']
-        
-        # حذف داده‌های تکراری و مرتب‌سازی
-        df = df[~df.index.duplicated(keep='first')]
-        df.sort_index(inplace=True)
-        
-        return df
+
+
 
     def complete_technical_analysis(self, df):
-        """محاسبه کامل تحلیل تکنیکال با 15 اندیکاتور مهم"""
-        
-        # 1. محاسبه اندیکاتورهای روند
-        df['sma20'] = SMAIndicator(close=df['price'], window=20).sma_indicator()
-        df['sma50'] = SMAIndicator(close=df['price'], window=50).sma_indicator()
-        df['sma200'] = SMAIndicator(close=df['price'], window=200).sma_indicator()
-        df['ema12'] = EMAIndicator(close=df['price'], window=12).ema_indicator()
-        df['ema26'] = EMAIndicator(close=df['price'], window=26).ema_indicator()
-        
-        # 2. محاسبه MACD
-        macd = MACD(close=df['price'], window_slow=26, window_fast=12, window_sign=9)
-        df['macd'] = macd.macd()
-        df['macd_signal'] = macd.macd_signal()
-        df['macd_hist'] = macd.macd_diff()
-        
-        # 3. محاسبه RSI
-        df['rsi14'] = RSIIndicator(close=df['price'], window=14).rsi()
-        
-        # 4. محاسبه بولینگر باندز
-        bb = BollingerBands(close=df['price'], window=20, window_dev=2)
-        df['bb_upper'] = bb.bollinger_hband()
-        df['bb_middle'] = bb.bollinger_mavg()
-        df['bb_lower'] = bb.bollinger_lband()
-        df['bb_width'] = (df['bb_upper'] - df['bb_lower']) / df['bb_middle']
-        
-        # 5. محاسبه استوکاستیک
-        stoch = StochasticOscillator(
-            high=df['price'], low=df['price'], close=df['price'], 
-            window=14, smooth_window=3
-        )
-        df['stoch_k'] = stoch.stoch()
-        df['stoch_d'] = stoch.stoch_signal()
-        
-        # 6. محاسبه ATR
-        df['atr14'] = ATR(
-            high=df['price'], low=df['price'], close=df['price'], 
-            window=14
-        ).average_true_range()
-        
-        # 7. محاسبه ADX
-        adx = ADXIndicator(
-            high=df['price'], low=df['price'], close=df['price'], 
-            window=14
-        )
-        df['adx'] = adx.adx()
-        df['adx_pos'] = adx.adx_pos()
-        df['adx_neg'] = adx.adx_neg()
-        
-        # 8. محاسبه ایچیموکو
-        ichimoku = IchimokuIndicator(
-            high=df['price'], low=df['price'], 
-            window1=9, window2=26, window3=52
-        )
-        df['ichi_conv'] = ichimoku.ichimoku_conversion_line()
-        df['ichi_base'] = ichimoku.ichimoku_base_line()
-        df['ichi_a'] = ichimoku.ichimoku_a()
-        df['ichi_b'] = ichimoku.ichimoku_b()
-        
-        # 9. محاسبه MFI (اگر حجم معاملات موجود باشد)
-        if 'volume' in df.columns:
-            df['mfi14'] = MFIIndicator(
-                high=df['price'], low=df['price'], 
-                close=df['price'], volume=df['volume'], 
-                window=14
-            ).money_flow_index()
-        
-        # 10. محاسبه پارابولیک SAR
-        df['psar'] = PSARIndicator(
-            high=df['price'], low=df['price'], 
-            close=df['price'], step=0.02, max_step=0.2
-        ).psar()
-        
-        # 11. محاسبه CCI
-        df['cci20'] = CCIIndicator(
-            high=df['price'], low=df['price'], 
-            close=df['price'], window=20
-        ).cci()
-        
-        # 12. محاسبه Williams %R
-        df['williams14'] = WilliamsRIndicator(
-            high=df['price'], low=df['price'], 
-            close=df['price'], lbp=14
-        ).williams_r()
-        
-        # 13. محاسبه Accumulation/Distribution
-        if 'volume' in df.columns:
-            df['adl'] = AccDistIndexIndicator(
-                high=df['price'], low=df['price'], 
-                close=df['price'], volume=df['volume']
-            ).acc_dist_index()
+
+        calculator = tc.TechnicalCalculator(df)
+        calculated_df = calculator.calculate_all()
         
         # تحلیل نهایی
-        return self.generate_analysis_report(df)
+        return self.generate_analysis_report(calculated_df)
 
     def generate_analysis_report(self, df):
         """تولید گزارش تحلیلی از داده‌های محاسبه شده"""
@@ -526,3 +263,147 @@ class BitcoinTechnicalAnalysisAPI(APIView):
             'value': round(row['adl'], 2),
             'trend': 'up' if row['adl'] > prev_row['adl'] else 'down'
         }
+    
+
+
+
+class AdvancedTechnicalAnalysis(APIView):
+    """
+    اندپوینت تحلیل تکنیکال پیشرفته با ترکیب‌های هوشمند اندیکاتورها
+    """
+    
+    CACHE_KEY = 'advanced_ta_analysis'
+    CACHE_TIMEOUT = 3600  # 1 ساعت
+
+    def get(self, request):
+        try:
+            cached_data = cache.get(self.CACHE_KEY)
+            if cached_data:
+                return Response(cached_data)
+            
+            df = tc.fetch_market_data()
+
+            # استفاده از کلاس محاسباتی
+            calculator = tc.TechnicalCalculator(df)
+            calculated_df = calculator.calculate_all()
+            analysis = {
+                "individual_indicators": self.get_high_confidence_individual_indicators(calculated_df),
+                "combined_strategies": self.get_high_confirmation_combinations(calculated_df)
+            }
+            
+            cache.set(self.CACHE_KEY, analysis, self.CACHE_TIMEOUT)
+            return Response(analysis)
+            
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    def get_high_confidence_individual_indicators(self, df):
+        """اندیکاتورهای مستقل با درصد تأییدیه بالا"""
+        return {
+            "golden_cross": {
+                "indicators": ["SMA50", "SMA200"],
+                "value": df['sma50'].iloc[-1] > df['sma200'].iloc[-1],
+                "trend": "bullish" if df['sma50'].iloc[-1] > df['sma200'].iloc[-1] else "bearish",
+                "confidence": "85%",
+                "description": "سیگنال تغییر روند بلندمدت"
+            },
+            "macd_crossover": {
+                "indicators": ["MACD", "Signal"],
+                "value": float(df['macd'].iloc[-1] - df['macd_signal'].iloc[-1]),
+                "trend": "bullish" if df['macd'].iloc[-1] > df['macd_signal'].iloc[-1] else "bearish",
+                "confidence": "80%",
+                "description": "تغییر مومنتوم میان‌مدت"
+            },
+            "rsi_divergence": {
+                "indicators": ["RSI14"],
+                "value": float(df['rsi14'].iloc[-1]),
+                "trend": self.get_rsi_trend(df),
+                "confidence": "75%",
+                "description": "اشباع خرید/فروش با تأییدیه بالا"
+            }
+        }
+
+    def get_high_confirmation_combinations(self, df):
+        """ترکیب‌های تأییدکننده چندلایه"""
+        return {
+            "trend_confirmation": {
+                "strategy": "تأیید روند بلندمدت",
+                "indicators": ["SMA50", "SMA200", "Ichimoku Cloud", "ADX"],
+                "conditions": {
+                    "golden_cross": df['sma50'].iloc[-1] > df['sma200'].iloc[-1],
+                    "price_above_cloud": df['price'].iloc[-1] > max(df['ichi_a'].iloc[-1], df['ichi_b'].iloc[-1]),
+                    "adx_strength": df['adx'].iloc[-1] > 25
+                },
+                "confirmed": all([
+                    df['sma50'].iloc[-1] > df['sma200'].iloc[-1],
+                    df['price'].iloc[-1] > max(df['ichi_a'].iloc[-1], df['ichi_b'].iloc[-1]),
+                    df['adx'].iloc[-1] > 25
+                ]),
+                "confidence": "90%",
+                "trend": self.get_combined_trend(df, 'trend')
+            },
+            "momentum_confirmation": {
+                "strategy": "تأیید مومنتوم قوی",
+                "indicators": ["MACD", "RSI", "Stochastic"],
+                "conditions": {
+                    "macd_bullish": df['macd'].iloc[-1] > df['macd_signal'].iloc[-1],
+                    "rsi_optimal": 50 < df['rsi14'].iloc[-1] < 70,
+                    "stochastic_cross": df['stoch_k'].iloc[-1] > df['stoch_d'].iloc[-1]
+                },
+                "confirmed": all([
+                    df['macd'].iloc[-1] > df['macd_signal'].iloc[-1],
+                    50 < df['rsi14'].iloc[-1] < 70,
+                    df['stoch_k'].iloc[-1] > df['stoch_d'].iloc[-1]
+                ]),
+                "confidence": "85%",
+                "trend": self.get_combined_trend(df, 'momentum')
+            },
+            "breakout_confirmation": {
+                "strategy": "تأیید شکست مقاومت",
+                "indicators": ["Bollinger Bands", "Volume", "ATR"],
+                "conditions": {
+                    "price_breakout": df['price'].iloc[-1] > df['bb_upper'].iloc[-1],
+                    "volume_spike": df['volume'].iloc[-1] > df['volume'].rolling(20).mean().iloc[-1] * 1.5,
+                    "high_volatility": df['atr14'].iloc[-1] > df['atr14'].rolling(20).mean().iloc[-1]
+                },
+                "confirmed": all([
+                    df['price'].iloc[-1] > df['bb_upper'].iloc[-1],
+                    df['volume'].iloc[-1] > df['volume'].rolling(20).mean().iloc[-1] * 1.5,
+                    df['atr14'].iloc[-1] > df['atr14'].rolling(20).mean().iloc[-1]
+                ]),
+                "confidence": "88%",
+                "trend": "bullish" if df['price'].iloc[-1] > df['bb_upper'].iloc[-1] else "bearish"
+            }
+        }
+
+    # متدهای کمکی
+    def get_rsi_trend(self, df):
+        rsi = df['rsi14'].iloc[-1]
+        if rsi > 70:
+            return "overbought"
+        elif rsi < 30:
+            return "oversold"
+        elif rsi > 50:
+            return "bullish"
+        else:
+            return "bearish"
+
+    def get_combined_trend(self, df, strategy_type):
+        if strategy_type == 'trend':
+            conditions = [
+                df['sma50'].iloc[-1] > df['sma200'].iloc[-1],
+                df['price'].iloc[-1] > max(df['ichi_a'].iloc[-1], df['ichi_b'].iloc[-1]),
+                df['adx'].iloc[-1] > 25
+            ]
+        else:  # momentum
+            conditions = [
+                df['macd'].iloc[-1] > df['macd_signal'].iloc[-1],
+                50 < df['rsi14'].iloc[-1] < 70,
+                df['stoch_k'].iloc[-1] > df['stoch_d'].iloc[-1]
+            ]
+        
+        return "strong_bullish" if all(conditions) else "bullish" if sum(conditions) >= 2 else "neutral"
